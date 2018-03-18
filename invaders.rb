@@ -34,15 +34,35 @@ class Bullet
   def move
     @center[:x] += @velocity[:x]
     @center[:y] += @velocity[:y]
-    @block.left = @center[:x] - @size[:x] / 2;
-    @block.top  = @center[:y] - @size[:y] / 2;
+    @block.left = @center[:x] - @size[:x] / 2
+    @block.top  = @center[:y] - @size[:y] / 2
+  end
+end
+
+class Invader
+  def initialize(shoes_app, x, y)
+    @shoes_app = shoes_app
+    @size = {:x => 15, :y => 15}
+    @center = {:x => x, :y => y}
+    @patrolX = 0;
+    @speedX = 0.3;
+    @shoes_app.fill('#0000DD')
+    @block = @shoes_app.rect(@center[:x] - @size[:x] / 2, @center[:y] - @size[:y] / 2, @size[:x], @size[:y])
+  end
+
+  def move
+    @speedX = -@speedX if @patrolX < 0 || @patrolX > 30
+    @center[:x] += @speedX
+    @patrolX += @speedX
+    @block.left = @center[:x] - @size[:x] / 2
   end
 end
 
 Shoes.app do
   Shoes.show_log
-  Shoes.debug " Space Invaders "
+  Shoes.debug " Space Invaders <=> "
   @bullets = []
+  @invaders = []
   @player = Player.new(self)
 
   def add_bullet
@@ -52,6 +72,16 @@ Shoes.app do
     @bullets << bullet
   end
 
+  def createInvaders
+    (0..24).each  do |n|
+        x = 30 + (n % 8) * 30;
+        y = 30 + (n % 3) * 30;
+        invader = Invader.new(self, x, y)
+        @invaders << invader
+    end
+  end
+
+  createInvaders
   keypress do |key|
     quit if key == :escape
     @player.move(4)  if key == :right
@@ -64,6 +94,9 @@ Shoes.app do
     now = Time.now
     @bullets.each do |bullet|
       bullet.move
+    end
+    @invaders.each do |invader|
+      invader.move
     end
     last = now
   end
